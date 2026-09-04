@@ -17,7 +17,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('id', 'title', 'description')
+        fields = ('id', 'title', 'description', 'slug')
         model = Group
 
 

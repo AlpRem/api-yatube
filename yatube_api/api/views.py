@@ -79,6 +79,8 @@ def api_comment_detail(request, post_id, comment_id):
     if request.method == 'GET':
         serializer = CommetSerializer(comment)
         return Response(serializer.data)
+    if comment.author != request.user:
+        return Response(status=status.HTTP_403_FORBIDDEN)
     if request.method in ('PUT', 'PATCH'):
         serializer = CommetSerializer(
             comment,
@@ -86,6 +88,7 @@ def api_comment_detail(request, post_id, comment_id):
             partial=request.method == 'PATCH'
         )
         if serializer.is_valid():
+            serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     comment.delete()
