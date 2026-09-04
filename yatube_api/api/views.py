@@ -1,95 +1,36 @@
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.generics import get_object_or_404
-from rest_framework.response import Response
+from rest_framework import viewsets
 
 from posts.models import Comment, Group, Post
 
+from .permissions import PostAndCommentPermission
 from .serializers import CommetSerializer, GroupSerializer, PostSerializer
 
 
-@api_view(['GET', 'POST'])
-def api_posts(request):
-    if request.method == 'GET':
-        posts = Post.objects.all()
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
-    serializer = PostSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save(author=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = (PostAndCommentPermission,)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
-@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
-def api_post_detail(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    if request.method == 'GET':
-        serializer = PostSerializer(post)
-        return Response(serializer.data)
-    if post.author != request.user:
-        return Response(status=status.HTTP_403_FORBIDDEN)
-    if request.method in ('PUT', 'PATCH'):
-        serializer = PostSerializer(
-            post,
-            data=request.data,
-            partial=request.method == 'PATCH'
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommetSerializer
+    permission_classes = (PostAndCommentPermission,)
+    lookup_url_kwarg = 'comment_id'
+
+    def get_queryset(self):
+        return Comment.objects.filter(post_id=self.kwargs['post_id'])
+
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user,
+            post_id=self.kwargs['post_id']
         )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    post.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-@api_view(['GET'])
-def api_groups(request):
-    groups = Group.objects.all()
-    serializer = GroupSerializer(groups, many=True)
-    return Response(serializer.data)
-
-
-@api_view(['GET',])
-def api_group_detail(request, group_id):
-    group = get_object_or_404(Group, id=group_id)
-    serializer = GroupSerializer(group)
-    return Response(serializer.data)
-
-
-@api_view(['GET', 'POST'])
-def api_comments(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    if request.method == 'GET':
-        comments = post.comments.all()
-        serializer = CommetSerializer(comments, many=True)
-        return Response(serializer.data)
-    serializer = CommetSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save(author=request.user, post=post)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
-def api_comment_detail(request, post_id, comment_id):
-    post = get_object_or_404(Post, id=post_id)
-    comment = get_object_or_404(Comment, id=comment_id, post=post)
-    if request.method == 'GET':
-        serializer = CommetSerializer(comment)
-        return Response(serializer.data)
-    if comment.author != request.user:
-        return Response(status=status.HTTP_403_FORBIDDEN)
-    if request.method in ('PUT', 'PATCH'):
-        serializer = CommetSerializer(
-            comment,
-            data=request.data,
-            partial=request.method == 'PATCH'
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    comment.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)

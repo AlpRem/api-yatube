@@ -1,18 +1,33 @@
-from django.urls import path
+from django.urls import include, path
 from rest_framework.authtoken import views
+from rest_framework.routers import DefaultRouter
 
-from .views import (api_comment_detail, api_comments, api_group_detail,
-                    api_groups, api_post_detail, api_posts)
+from .views import CommentViewSet, GroupViewSet, PostViewSet
+
+router = DefaultRouter()
+router.register('posts', PostViewSet)
+router.register('groups', GroupViewSet)
+comment_list = CommentViewSet.as_view({'get': 'list', 'post': 'create'})
+comment_detail = CommentViewSet.as_view(
+    {
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+        'delete': 'destroy'
+    }
+)
 
 urlpatterns = [
     path('v1/api-token-auth/', views.obtain_auth_token),
-    path('v1/posts/', api_posts),
-    path('v1/posts/<int:post_id>/', api_post_detail),
-    path('v1/groups/', api_groups),
-    path('v1/groups/<int:group_id>/', api_group_detail),
-    path('v1/posts/<int:post_id>/comments/', api_comments),
+    path('v1/', include(router.urls)),
+    path(
+        'v1/posts/<int:post_id>/comments/',
+        comment_list,
+        name='comment-list'
+    ),
     path(
         'v1/posts/<int:post_id>/comments/<int:comment_id>/',
-        api_comment_detail
+        comment_detail,
+        name='comment-detail'
     ),
 ]
