@@ -19,7 +19,10 @@ class Post(models.Model):
         'Дата публикации', auto_now_add=True
     )
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='posts', verbose_name='Автор'
+        User,
+        on_delete=models.CASCADE,
+        related_name='posts',
+        verbose_name='Автор'
     )
     image = models.ImageField(
         'Изображение', upload_to='posts/', null=True, blank=True
@@ -35,10 +38,16 @@ class Post(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments', verbose_name='Автор'
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор'
     )
     post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='comments', verbose_name='Пост'
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Пост'
     )
     text = models.TextField('Текст')
     created = models.DateTimeField(
