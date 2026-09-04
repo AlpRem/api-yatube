@@ -22,6 +22,11 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class CommetSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username'
+    )
+
     class Meta:
         fields = ('id', 'author', 'post', 'text', 'created')
         read_only_fields = ('author', 'post')
