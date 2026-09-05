@@ -9,6 +9,10 @@ class Group(models.Model):
     slug = models.SlugField('Идентификатор', unique=True)
     description = models.TextField('Описание')
 
+    class Meta:
+        verbose_name='Группа'
+        verbose_name_plural='Группы'
+
     def __str__(self):
         return self.title
 
@@ -32,6 +36,10 @@ class Post(models.Model):
         related_name='posts', blank=True, null=True, verbose_name='Группа'
     )
 
+    class Meta:
+        verbose_name='Публикация'
+        verbose_name_plural='Публикации'
+
     def __str__(self):
         return self.text[:50]
 
@@ -53,6 +61,10 @@ class Comment(models.Model):
     created = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
+
+    class Meta:
+        verbose_name='Комментарий'
+        verbose_name_plural='Комментарии'
 
     def __str__(self):
         return self.text[:50]
